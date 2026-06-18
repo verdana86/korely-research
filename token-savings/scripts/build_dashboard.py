@@ -178,7 +178,10 @@ HTML = r"""<!doctype html>
 
 <script>
 const D = __DATA__;
-function countUp(el){const to=+el.dataset.count,suf=el.dataset.suffix||"",t0=performance.now(),dur=1100;
+const STATIC = location.hash === "#final";   // jump to final values (for previews / reduced motion)
+function countUp(el){const to=+el.dataset.count,suf=el.dataset.suffix||"";
+  if(STATIC){el.textContent=to.toLocaleString()+suf;return;}
+  const t0=performance.now(),dur=1100;
   (function s(n){const p=Math.min(1,(n-t0)/dur),e=1-Math.pow(1-p,3);el.textContent=Math.round(to*e).toLocaleString()+suf;if(p<1)requestAnimationFrame(s);})(t0);}
 
 const maxFull=Math.max(...D.axes.map(a=>a.full));
@@ -220,6 +223,7 @@ PRICES.forEach(([m,p])=>{const per1k=D.saved*1000*p/1e6,per1m=D.saved*1e6*p/1e6;
   tr.innerHTML=`<td>${m} <span style="color:#6F7884">($${p.toFixed(2)}/M)</span></td><td class="n save">$${per1k.toFixed(2)}</td><td class="n save">$${per1m.toLocaleString(undefined,{maximumFractionDigits:0})}</td>`;cb.appendChild(tr);});
 
 document.querySelectorAll("[data-count]").forEach(countUp);
+if(STATIC)document.querySelectorAll(".bar").forEach(b=>b.style.transition="none");
 requestAnimationFrame(()=>document.querySelectorAll(".bar").forEach(b=>b.style.width=b.dataset.w+"%"));
 </script>
 </body>

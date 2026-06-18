@@ -10,6 +10,12 @@ You pay per input token, so this is a measured, reproducible cut to the bill. Ev
 
 **Read this first.** This measures **token efficiency** (objective). It is measured against a deliberately naive baseline: an agent that re-sends the entire conversation on every turn. It does **not** measure answer accuracy (whether the compressed block is enough to answer correctly), which needs a neutral LLM judge and is out of scope here.
 
+## Dashboard
+
+![Token efficiency on LongMemEval](dashboards/dashboard.gif)
+
+Interactive version: open [`dashboards/index.html`](dashboards/index.html) in any browser (self-contained, no server), or [view it rendered here](https://htmlpreview.github.io/?https://github.com/verdana86/korely-research/blob/token-savings-benchmark/token-savings/dashboards/index.html). Full still: [`dashboards/dashboard.png`](dashboards/dashboard.png). It regenerates from the results with `python scripts/build_dashboard.py`.
+
 ---
 
 ## Result

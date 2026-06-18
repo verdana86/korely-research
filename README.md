@@ -18,6 +18,11 @@
 
 Plug it into Claude Code, Cursor, Claude Desktop, or any MCP client and ask questions about your notes — including questions like *"what else mentions X?"* that flat-file memory and chunk-based RAG can't answer well.
 
+## Benchmarks
+
+- **[Token efficiency on LongMemEval](token-savings/)**: answering from Korely's memory block instead of re-sending the full conversation uses **66% fewer input tokens** (median 62% per question), reproducible with no API key. Includes an animated dashboard and the raw per-question data.
+- **[Retrieval vs vanilla RAG and nano-graphrag](BENCHMARK.md)**: the entity-graph retrieval benchmark.
+
 ## Demo
 
 **1. Start the MCP server** — `docker compose exec app korely-graphrag serve`:

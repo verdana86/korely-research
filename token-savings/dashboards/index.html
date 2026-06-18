@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Korely &middot; Token efficiency on LongMemEval</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#0B0F17;--panel:#0e1422;--ink:#E8EDF2;--mut:#9CA3AF;--fnt:#6F7884;
+    --green:#34D399;--green2:#10B981;--red:#F87171;--line:#1b2230;
+    --sans:"Geist",ui-sans-serif,-apple-system,sans-serif;--mono:"Geist Mono",ui-monospace,monospace;}
+  *{box-sizing:border-box}html,body{margin:0}
+  body{background:#05070c;color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:radial-gradient(ellipse 70% 50% at 50% -5%,rgba(16,185,129,.10),transparent 60%),
+    linear-gradient(to right,#0c1018 1px,transparent 1px),linear-gradient(to bottom,#0c1018 1px,transparent 1px);
+    background-size:auto,48px 48px,48px 48px;
+    -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 20%,#000 40%,transparent 100%);
+            mask-image:radial-gradient(ellipse 90% 70% at 50% 20%,#000 40%,transparent 100%);}
+  .wrap{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:0 24px 96px}
+  header{display:flex;align-items:center;justify-content:space-between;padding:26px 0 8px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600}.brand svg{display:block}
+  .verify{font-family:var(--mono);font-size:12.5px;color:var(--mut);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:7px 12px;transition:.2s}
+  .verify:hover{color:var(--ink);border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.06)}
+  .eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--green);margin:42px 0 14px}
+  h1{font-size:clamp(30px,5vw,50px);font-weight:700;letter-spacing:-.025em;line-height:1.08;margin:0 0 14px;max-width:800px}
+  h1 .hl{background:linear-gradient(180deg,#6EE7B7,#10B981);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:17px;color:var(--mut);max-width:700px;margin:0}
+  .lede code{font-family:var(--mono);font-size:14px;color:#C7CED6;background:rgba(255,255,255,.05);padding:1px 6px;border-radius:5px}
+  .scopeline{font-size:13.5px;color:var(--fnt);max-width:700px;margin:14px 0 0;line-height:1.6}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:36px 0 8px}
+  .stat{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,var(--panel),rgba(11,15,23,.4));padding:22px}
+  .stat .big{font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;
+    background:linear-gradient(180deg,#6EE7B7,#10B981);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat .lab{font-size:13px;color:var(--mut);margin-top:9px}
+  section{margin-top:62px}
+  .h2{font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--fnt);margin:0 0 6px}
+  .h2b{font-size:24px;font-weight:600;letter-spacing:-.02em;margin:0 0 22px}
+  .bars{border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden}
+  .row{display:grid;grid-template-columns:180px 1fr 128px;align-items:center;gap:18px;padding:16px 20px;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:0}
+  .row .name{font-size:14px;font-weight:500}.row .name small{display:block;color:var(--fnt);font-family:var(--mono);font-size:11px;margin-top:2px}
+  .track{position:relative;height:30px}
+  .bar{position:absolute;left:0;height:12px;border-radius:7px;width:0;transition:width 1.1s cubic-bezier(.22,1,.36,1)}
+  .bar.full{top:1px;background:linear-gradient(90deg,rgba(248,113,113,.85),rgba(248,113,113,.45))}
+  .bar.kor{top:17px;background:linear-gradient(90deg,#10B981,#34D399)}
+  .bar .t{position:absolute;right:-6px;top:50%;transform:translate(100%,-50%);font-family:var(--mono);font-size:11px;color:var(--mut);white-space:nowrap}
+  .delta{text-align:right}.delta .pct{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums}
+  .delta .pct.neg{color:var(--red)}.delta .pct.pos{color:var(--green)}
+  .delta small{display:block;color:var(--fnt);font-family:var(--mono);font-size:10.5px;margin-top:4px}
+  .legend{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--mut);padding:14px 20px 0}
+  .legend i{width:18px;height:6px;border-radius:6px;display:inline-block}.legend .gap{flex:1}
+  .note{font-size:12.5px;color:var(--fnt);margin-top:14px;line-height:1.6;max-width:760px}
+  .scatter{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:18px}
+  .scatter svg{width:100%;height:auto;display:block}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .card{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px}
+  .card h3{margin:0 0 8px;font-size:15px}.card p{margin:0;color:var(--mut);font-size:13.5px;line-height:1.6}
+  .card code{font-family:var(--mono);font-size:12.5px;color:#C7CED6}
+  .cost table{width:100%;border-collapse:collapse;font-size:13.5px}
+  .cost th,.cost td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  .cost th{color:var(--fnt);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.1em}
+  .cost td.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}.cost .save{color:var(--green);font-weight:600}
+  footer{margin-top:62px;border-top:1px solid var(--line);padding-top:24px;color:var(--fnt);font-size:13px}
+  footer a{color:var(--mut)}.mono{font-family:var(--mono)}
+  @media(max-width:720px){.stats,.cards{grid-template-columns:1fr}.row{grid-template-columns:130px 1fr}.delta{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 3 L21 20 L3 20 Z" fill="none" stroke="#34D399" stroke-width="1.8" stroke-linejoin="round"/></svg>Korely</div>
+    <a class="verify" href="https://github.com/verdana86/korely-research/tree/main/token-savings">run it yourself &rarr;</a>
+  </header>
+
+  <p class="eyebrow">Token efficiency &middot; LongMemEval</p>
+  <h1>Answering from memory costs <span class="hl">66% fewer input tokens</span>.</h1>
+  <p class="lede">On the public LongMemEval benchmark, a memory-less agent re-sends the whole conversation to answer. Korely answers from a compact <code>get_context()</code> block. Measured, deterministic, no LLM and no API key required to verify.</p>
+  <p class="scopeline">This measures <b>token efficiency</b> against a naive baseline that re-sends the full history every turn. It does <b>not</b> measure answer accuracy (a separate, judge-dependent metric, out of scope here).</p>
+
+  <div class="stats">
+    <div class="stat"><div class="big" data-count="66" data-suffix="%">0</div><div class="lab">fewer input tokens, overall (pooled, N=178)</div></div>
+    <div class="stat"><div class="big" data-count="62" data-suffix="%">0</div><div class="lab">fewer, median per question</div></div>
+    <div class="stat"><div class="big" data-count="3646">0</div><div class="lab">fewer input tokens per turn (avg)</div></div>
+  </div>
+
+  <section>
+    <p class="h2">Per question type</p>
+    <h2 class="h2b">The saving grows with the history.</h2>
+    <div class="bars" id="bars"></div>
+    <div class="legend"><i style="background:linear-gradient(90deg,#F87171,rgba(248,113,113,.5))"></i> full history<span class="gap"></span><i style="background:linear-gradient(90deg,#10B981,#34D399)"></i> Korely get_context</div>
+    <p class="note">Three headline reductions so the question mix is explicit: pooled (token-weighted) 66%, per-question median 62%, dataset-axis re-weighted 60%. The single-session-assistant row is &minus;9% on purpose: those conversations are ~1k tokens, already smaller than the block, so memory adds overhead. In total 20 of 178 questions cost more with Korely; we report it.</p>
+  </section>
+
+  <section>
+    <p class="h2">Every question</p>
+    <h2 class="h2b">Korely stays in a flat band; full history climbs.</h2>
+    <div class="scatter"><svg id="scatter" viewBox="0 0 1000 480" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <p class="note">Each green dot is one of the 178 questions: full-history input tokens (x) vs Korely input tokens (y). The red diagonal is break-even (y = x). On these oracle histories (up to ~17k tokens), Korely stays in a low band near its ~2k budget while the full-history cost climbs the diagonal.</p>
+  </section>
+
+  <section>
+    <p class="h2">What the block keeps</p>
+    <h2 class="h2b">A compression, not a copy.</h2>
+    <div class="cards">
+      <div class="card"><h3>Evidence is present, not complete</h3><p>For every question, at least one gold answer-evidence turn is kept in the block (a floor). On average it keeps <b>47%</b> of the evidence turns: the block compresses the history, that is the point. This is not a recall@k score, and it is not an accuracy claim.</p></div>
+      <div class="card"><h3>Accuracy is measured separately</h3><p>Whether the compressed block is <i>enough</i> to answer correctly is the accuracy question. It needs a neutral LLM judge of a different model family than the reader, and is tracked separately, not claimed on this page.</p></div>
+    </div>
+  </section>
+
+  <section class="cost">
+    <p class="h2">What it costs</p>
+    <h2 class="h2b">3,646 fewer input tokens per turn is real money.</h2>
+    <div class="card">
+      <table><thead><tr><th>model (input price)</th><th class="n">per 1k turns</th><th class="n">per 1M turns</th></tr></thead><tbody id="costbody"></tbody></table>
+      <p class="note">Saving = 3,646 input tokens/turn &times; the model's input price. Output tokens are unaffected; only the input shrinks. Prices are public list rates and change; the token reduction does not.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="h2">Method, honestly</p>
+    <h2 class="h2b">Stated assumptions, no cherry-picking.</h2>
+    <div class="cards">
+      <div class="card"><h3>Naive baseline</h3><p>"full history" re-sends every turn on every question. Real agents window, truncate, or cache, so 66% is "vs an agent that resends everything", not vs every alternative.</p></div>
+      <div class="card"><h3>Conservative split</h3><p>The <code>oracle</code> split has no distractor sessions, so the full history is as small as it gets. The reduction is a <b>lower bound</b>; on the full long-context split it is larger.</p></div>
+      <div class="card"><h3>Tokenizer &amp; budget</h3><p>Counts use <code>tiktoken o200k_base</code> for both sides (ratio apples-to-apples; not measured against the Llama reader's tokenizer, so treat as &plusmn;a few points). The ~2k budget is a soft target: 65 of 178 blocks exceed it.</p></div>
+      <div class="card"><h3>Question mix</h3><p>knowledge-update is a full 78/78 census; the other axes are 20-question subsamples and multi-session skews large. The overall number is robust: pooled 66%, median 62%, re-weighted 60%.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    Dataset: <a href="https://arxiv.org/abs/2410.10813">LongMemEval</a> (Wu et al., 2024), oracle split, public MIT mirror.
+    Reproduce: <span class="mono">python scripts/analyze.py</span> ($0, no keys). Numbers regenerate from <span class="mono">results/summary.json</span>.
+  </footer>
+</div>
+
+<script>
+const D = {"pooled": 66, "median": 62, "reweighted": 60, "saved": 3646, "n": 178, "costs_more": 20, "retention_avg": 47, "over_budget": 65, "axes": [{"key": "multi-session", "label": "Multi-session", "census": false, "full": 10483, "kor": 1878, "red": 82, "ret": 30}, {"key": "temporal-reasoning", "label": "Temporal reasoning", "census": false, "full": 7374, "kor": 1830, "red": 75, "ret": 37}, {"key": "knowledge-update", "label": "Knowledge update", "census": true, "full": 5976, "kor": 2134, "red": 64, "ret": 31}, {"key": "single-session-preference", "label": "Single-session preference", "census": false, "full": 4164, "kor": 1910, "red": 54, "ret": 62}, {"key": "single-session-user", "label": "Single-session user", "census": false, "full": 2960, "kor": 1808, "red": 39, "ret": 74}, {"key": "single-session-assistant", "label": "Single-session assistant", "census": false, "full": 1081, "kor": 1177, "red": -9, "ret": 97}], "rows": [{"f": 6268, "k": 2105}, {"f": 5149, "k": 2072}, {"f": 5141, "k": 2005}, {"f": 6932, "k": 2126}, {"f": 5571, "k": 2108}, {"f": 5571, "k": 2125}, {"f": 6039, "k": 2172}, {"f": 5758, "k": 2204}, {"f": 5437, "k": 1963}, {"f": 5436, "k": 1944}, {"f": 6548, "k": 2075}, {"f": 3896, "k": 2076}, {"f": 5342, "k": 2177}, {"f": 8187, "k": 2007}, {"f": 7383, "k": 2258}, {"f": 6533, "k": 2071}, {"f": 5366, "k": 2104}, {"f": 5366, "k": 2099}, {"f": 5038, "k": 2035}, {"f": 5857, "k": 2210}, {"f": 5854, "k": 2200}, {"f": 6518, "k": 2158}, {"f": 9057, "k": 2106}, {"f": 6945, "k": 2169}, {"f": 5725, "k": 2080}, {"f": 6092, "k": 2158}, {"f": 4530, "k": 2237}, {"f": 6051, "k": 2250}, {"f": 5615, "k": 2148}, {"f": 6223, "k": 2063}, {"f": 5111, "k": 2209}, {"f": 5793, "k": 2168}, {"f": 4722, "k": 2205}, {"f": 6588, "k": 2317}, {"f": 4751, "k": 2136}, {"f": 5721, "k": 2115}, {"f": 6103, "k": 2154}, {"f": 7430, "k": 2329}, {"f": 8441, "k": 2037}, {"f": 4996, "k": 2189}, {"f": 4996, "k": 2067}, {"f": 7499, "k": 2130}, {"f": 6266, "k": 2182}, {"f": 6442, "k": 2123}, {"f": 6093, "k": 2191}, {"f": 4385, "k": 2203}, {"f": 5028, "k": 2117}, {"f": 5764, "k": 2444}, {"f": 6812, "k": 2040}, {"f": 6827, "k": 2062}, {"f": 5083, "k": 2184}, {"f": 6125, "k": 2118}, {"f": 5974, "k": 2144}, {"f": 7145, "k": 2110}, {"f": 6952, "k": 2052}, {"f": 5299, "k": 2027}, {"f": 6192, "k": 2126}, {"f": 5041, "k": 2022}, {"f": 5216, "k": 2214}, {"f": 6078, "k": 1908}, {"f": 5462, "k": 2271}, {"f": 5296, "k": 2139}, {"f": 6709, "k": 2134}, {"f": 6146, "k": 2077}, {"f": 5330, "k": 2157}, {"f": 7461, "k": 2103}, {"f": 4942, "k": 2226}, {"f": 5574, "k": 2145}, {"f": 7328, "k": 2050}, {"f": 4673, "k": 2103}, {"f": 6496, "k": 2122}, {"f": 5610, "k": 2103}, {"f": 6375, "k": 2282}, {"f": 6395, "k": 2135}, {"f": 7530, "k": 2220}, {"f": 4747, "k": 2138}, {"f": 4740, "k": 2122}, {"f": 7042, "k": 2102}, {"f": 8127, "k": 1993}, {"f": 17623, "k": 1813}, {"f": 10253, "k": 1894}, {"f": 9569, "k": 1788}, {"f": 9902, "k": 1896}, {"f": 10918, "k": 1914}, {"f": 6691, "k": 1906}, {"f": 14095, "k": 1721}, {"f": 12042, "k": 1369}, {"f": 9369, "k": 1953}, {"f": 9976, "k": 1901}, {"f": 12020, "k": 1985}, {"f": 5502, "k": 1987}, {"f": 5820, "k": 2566}, {"f": 9896, "k": 1881}, {"f": 10732, "k": 1857}, {"f": 15780, "k": 1969}, {"f": 10497, "k": 1779}, {"f": 11219, "k": 1900}, {"f": 9626, "k": 1478}, {"f": 676, "k": 776}, {"f": 929, "k": 965}, {"f": 199, "k": 235}, {"f": 742, "k": 842}, {"f": 1333, "k": 1561}, {"f": 721, "k": 853}, {"f": 1146, "k": 1198}, {"f": 1607, "k": 1607}, {"f": 2115, "k": 2327}, {"f": 783, "k": 883}, {"f": 1175, "k": 1371}, {"f": 726, "k": 762}, {"f": 474, "k": 510}, {"f": 1656, "k": 1884}, {"f": 1190, "k": 1354}, {"f": 302, "k": 370}, {"f": 1081, "k": 1213}, {"f": 2008, "k": 1822}, {"f": 1186, "k": 1199}, {"f": 1574, "k": 1802}, {"f": 4490, "k": 2020}, {"f": 4023, "k": 1938}, {"f": 6090, "k": 1919}, {"f": 3775, "k": 1868}, {"f": 4034, "k": 1949}, {"f": 3748, "k": 2035}, {"f": 3566, "k": 1862}, {"f": 4290, "k": 1658}, {"f": 4501, "k": 1997}, {"f": 3753, "k": 1954}, {"f": 2967, "k": 1734}, {"f": 3502, "k": 1825}, {"f": 4600, "k": 1827}, {"f": 3929, "k": 1855}, {"f": 3738, "k": 2057}, {"f": 5392, "k": 1824}, {"f": 3394, "k": 1951}, {"f": 4622, "k": 1919}, {"f": 4635, "k": 2013}, {"f": 4239, "k": 1988}, {"f": 2819, "k": 1818}, {"f": 2829, "k": 1851}, {"f": 2831, "k": 1838}, {"f": 2299, "k": 1831}, {"f": 2060, "k": 1710}, {"f": 2641, "k": 1829}, {"f": 3441, "k": 1733}, {"f": 1301, "k": 1497}, {"f": 1945, "k": 1798}, {"f": 3103, "k": 1835}, {"f": 3342, "k": 1821}, {"f": 3494, "k": 1785}, {"f": 3050, "k": 1812}, {"f": 3241, "k": 1873}, {"f": 2735, "k": 1946}, {"f": 3278, "k": 1818}, {"f": 3452, "k": 1895}, {"f": 4606, "k": 1748}, {"f": 3774, "k": 1838}, {"f": 2969, "k": 1892}, {"f": 6357, "k": 1752}, {"f": 7392, "k": 1757}, {"f": 6050, "k": 1913}, {"f": 5494, "k": 1805}, {"f": 5887, "k": 1893}, {"f": 17606, "k": 1778}, {"f": 5947, "k": 1867}, {"f": 6916, "k": 1746}, {"f": 6697, "k": 1843}, {"f": 5753, "k": 1975}, {"f": 6966, "k": 1839}, {"f": 8653, "k": 1832}, {"f": 7296, "k": 1874}, {"f": 4554, "k": 1921}, {"f": 13127, "k": 1601}, {"f": 6865, "k": 1796}, {"f": 6693, "k": 1941}, {"f": 7099, "k": 1892}, {"f": 5398, "k": 1877}, {"f": 6732, "k": 1698}]};
+function countUp(el){const to=+el.dataset.count,suf=el.dataset.suffix||"",t0=performance.now(),dur=1100;
+  (function s(n){const p=Math.min(1,(n-t0)/dur),e=1-Math.pow(1-p,3);el.textContent=Math.round(to*e).toLocaleString()+suf;if(p<1)requestAnimationFrame(s);})(t0);}
+
+const maxFull=Math.max(...D.axes.map(a=>a.full));
+const bars=document.getElementById("bars");
+D.axes.forEach(a=>{
+  const neg=a.red<0;const row=document.createElement("div");row.className="row";
+  row.innerHTML=`<div class="name">${a.label}${a.census?' <span style="color:#34D399">&middot; full census</span>':''}<small>N=${a.census?78:20}</small></div>
+    <div class="track">
+      <div class="bar full" data-w="${a.full/maxFull*100}"><span class="t">${a.full.toLocaleString()} tok</span></div>
+      <div class="bar kor" data-w="${a.kor/maxFull*100}"><span class="t">${a.kor.toLocaleString()} tok</span></div>
+    </div>
+    <div class="delta"><div class="pct ${neg?'neg':'pos'}">${neg?'+':'&minus;'}${Math.abs(a.red)}%</div><small>${a.ret}% evidence kept</small></div>`;
+  bars.appendChild(row);
+});
+
+const SVG=document.getElementById("scatter"),VW=1000,VH=480,P={l:64,r:24,t:20,b:46};
+const maxX=Math.max(...D.rows.map(r=>r.f))*1.04,maxY=maxX;
+const X=v=>P.l+v/maxX*(VW-P.l-P.r),Y=v=>(VH-P.b)-v/maxY*(VH-P.t-P.b);
+let g="";
+for(let i=0;i<=4;i++){const v=maxX*i/4,yy=Y(v),xx=X(v);
+  g+=`<line x1="${P.l}" y1="${yy}" x2="${VW-P.r}" y2="${yy}" stroke="#141a24"/>`;
+  g+=`<text x="${P.l-10}" y="${yy+4}" fill="#5b6573" font-size="11" text-anchor="end" font-family="Geist Mono">${Math.round(v/1000)}k</text>`;
+  g+=`<text x="${xx}" y="${VH-P.b+20}" fill="#5b6573" font-size="11" text-anchor="middle" font-family="Geist Mono">${Math.round(v/1000)}k</text>`;}
+g+=`<text x="${VW/2}" y="${VH-6}" fill="#6F7884" font-size="12" text-anchor="middle">full-history input tokens</text>`;
+g+=`<text transform="translate(16 ${VH/2}) rotate(-90)" fill="#6F7884" font-size="12" text-anchor="middle">Korely input tokens</text>`;
+g+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(maxX)}" y2="${Y(maxX)}" stroke="#F87171" stroke-dasharray="5 5" stroke-opacity=".5"/>`;
+g+=`<text x="${X(maxX)-6}" y="${Y(maxX)+16}" fill="#F4A6A6" font-size="11" text-anchor="end">break-even (y = x)</text>`;
+SVG.innerHTML=g;
+D.rows.forEach((r,i)=>{const el=document.createElementNS("http://www.w3.org/2000/svg","circle");
+  el.setAttribute("cx",X(r.f));el.setAttribute("cy",Y(r.k));el.setAttribute("r","0");
+  el.setAttribute("fill","#34D399");el.setAttribute("fill-opacity",".75");
+  el.style.transition="r .5s cubic-bezier(.22,1,.36,1) "+(i*4)+"ms";
+  el.innerHTML=`<title>full ${r.f.toLocaleString()} tok -> Korely ${r.k.toLocaleString()} tok</title>`;
+  SVG.appendChild(el);requestAnimationFrame(()=>requestAnimationFrame(()=>el.setAttribute("r","4")));});
+
+const PRICES=[["Gemini 2.5 Flash-Lite",0.10],["GPT-4o",2.50],["Claude Sonnet",3.00]];
+const cb=document.getElementById("costbody");
+PRICES.forEach(([m,p])=>{const per1k=D.saved*1000*p/1e6,per1m=D.saved*1e6*p/1e6;const tr=document.createElement("tr");
+  tr.innerHTML=`<td>${m} <span style="color:#6F7884">($${p.toFixed(2)}/M)</span></td><td class="n save">$${per1k.toFixed(2)}</td><td class="n save">$${per1m.toLocaleString(undefined,{maximumFractionDigits:0})}</td>`;cb.appendChild(tr);});
+
+document.querySelectorAll("[data-count]").forEach(countUp);
+requestAnimationFrame(()=>document.querySelectorAll(".bar").forEach(b=>b.style.width=b.dataset.w+"%"));
+</script>
+</body>
+</html>

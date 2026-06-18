@@ -1,0 +1,94 @@
+{
+  "tokenizer": "tiktoken/o200k_base",
+  "split": "longmemeval_oracle",
+  "condition": "korely get_context (native, ~2000-token soft budget)",
+  "axes": {
+    "knowledge-update": {
+      "n": 78,
+      "full_avg": 5976.4,
+      "korely_avg": 2134.1,
+      "reduction_pct": 64.3,
+      "evidence_present_pct": 100.0,
+      "evidence_retention_avg_pct": 31.2,
+      "blocks_over_budget": 63,
+      "is_full_census": true,
+      "full_max": 9057,
+      "korely_max": 2444
+    },
+    "multi-session": {
+      "n": 20,
+      "full_avg": 10482.9,
+      "korely_avg": 1877.5,
+      "reduction_pct": 82.1,
+      "evidence_present_pct": 100.0,
+      "evidence_retention_avg_pct": 29.7,
+      "blocks_over_budget": 1,
+      "is_full_census": false,
+      "full_max": 17623,
+      "korely_max": 2566
+    },
+    "single-session-assistant": {
+      "n": 20,
+      "full_avg": 1081.2,
+      "korely_avg": 1176.7,
+      "reduction_pct": -8.8,
+      "evidence_present_pct": 100.0,
+      "evidence_retention_avg_pct": 97.0,
+      "blocks_over_budget": 1,
+      "is_full_census": false,
+      "full_max": 2115,
+      "korely_max": 2327
+    },
+    "single-session-preference": {
+      "n": 20,
+      "full_avg": 4164.4,
+      "korely_avg": 1909.7,
+      "reduction_pct": 54.1,
+      "evidence_present_pct": 100.0,
+      "evidence_retention_avg_pct": 61.6,
+      "blocks_over_budget": 0,
+      "is_full_census": false,
+      "full_max": 6090,
+      "korely_max": 2057
+    },
+    "single-session-user": {
+      "n": 20,
+      "full_avg": 2960.5,
+      "korely_avg": 1808.4,
+      "reduction_pct": 38.9,
+      "evidence_present_pct": 100.0,
+      "evidence_retention_avg_pct": 74.5,
+      "blocks_over_budget": 0,
+      "is_full_census": false,
+      "full_max": 4606,
+      "korely_max": 1946
+    },
+    "temporal-reasoning": {
+      "n": 20,
+      "full_avg": 7374.1,
+      "korely_avg": 1830.0,
+      "reduction_pct": 75.2,
+      "evidence_present_pct": 100.0,
+      "evidence_retention_avg_pct": 37.1,
+      "blocks_over_budget": 0,
+      "is_full_census": false,
+      "full_max": 17606,
+      "korely_max": 1975
+    }
+  },
+  "overall": {
+    "n": 178,
+    "full_avg": 5547.3,
+    "korely_avg": 1901.7,
+    "reduction_pct_pooled": 65.7,
+    "reduction_pct_per_question_median": 61.8,
+    "reduction_pct_per_question_mean": 53.7,
+    "reduction_pct_dataset_reweighted": 59.6,
+    "questions_where_korely_costs_more": 20,
+    "evidence_present_pct": 100.0,
+    "evidence_retention_avg_pct": 47.3,
+    "evidence_retention_median_pct": 37.5,
+    "blocks_over_budget": 65,
+    "saved_per_turn": 3646
+  }
+}

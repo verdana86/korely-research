@@ -12,6 +12,35 @@
 
 ---
 
+## Start here
+
+This repo is two things in one place: the open-source retrieval engine that powers [Korely](https://korely.com), and two honest, reproducible benchmarks that show what it buys you. Pick the door that matches why you came.
+
+| If you want... | Go here |
+|---|---|
+| To run it on your own markdown notes | [Quickstart](#quickstart) |
+| The **token-efficiency** result (66% fewer input tokens, reproducible with no API key) | [token-savings/](token-savings/) |
+| The **retrieval** result (entity graph vs vanilla RAG, p@1 0.50 vs 0.00) | [BENCHMARK.md](BENCHMARK.md) |
+| To understand how it works inside (4 diagrams) | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| The 30-second pitch | [What it is](#what-it-is) |
+
+## Map of this repo
+
+```
+korely-graphrag/
+├── src/korely_graphrag/   the engine: chunk + embed + entity-extract + hybrid search, served over MCP
+├── token-savings/         token-efficiency benchmark on LongMemEval (dashboards, data, results, $0 to verify)
+├── benchmark/             retrieval benchmark: entity graph vs vanilla RAG vs nano-graphrag (corpus + scripts)
+├── tests/                 pytest suite (49 tests)
+├── docs/images/           demo screenshots used below
+├── notes/                 drop your own *.md here to index them
+├── BENCHMARK.md           writeup of the retrieval benchmark
+├── ARCHITECTURE.md        ingest / query / graph-traversal pipelines, with diagrams
+└── README.md              you are here
+```
+
+---
+
 ## What it is
 
 `korely-graphrag` is the open-source extraction of the retrieval engine that powers [Korely](https://korely.com): an MCP-compatible second brain that goes beyond vanilla RAG by automatically extracting and indexing entities (people, organizations, technologies, concepts) from your notes, then surfacing related items through a knowledge graph.

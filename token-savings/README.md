@@ -10,6 +10,35 @@ You pay per input token, so this is a measured, reproducible cut to the bill. Ev
 
 **Read this first.** This measures **token efficiency** (objective). It is measured against a deliberately naive baseline: an agent that re-sends the entire conversation on every turn. It does **not** measure answer accuracy (whether the compressed block is enough to answer correctly), which needs a neutral LLM judge and is out of scope here.
 
+## Contents
+
+- [Introduction — the question, and why we measured it this way](#introduction)
+- [Dashboard](#dashboard)
+- [Result](#result)
+- [What "evidence retained" means (and what it does not)](#what-evidence-retained-means-and-what-it-does-not)
+- [What is being measured](#what-is-being-measured)
+- [Methodology and honest scope](#methodology--honest-scope)
+- [Reproduce it](#reproduce-it)
+- [Cost](#cost)
+- [Citation](#citation)
+
+## Introduction
+
+An agent with no memory layer answers each turn by carrying its whole history in the prompt. That history grows every session, and you pay for it on every input token. A memory layer is supposed to replace the growing transcript with a small, relevant block. This page measures exactly one thing, as objectively as we can: **how many input tokens that swap saves.**
+
+**The question.** For a fixed set of real questions over long, multi-session chat histories, how many input tokens does an agent spend to answer (a) by re-sending the full conversation, versus (b) by reading Korely's `get_context()` block instead?
+
+**Why tokens and not an accuracy score.** Accuracy needs an LLM judge, and a judge is a moving, arguable part. Token counts are not: same prompt template, same tokenizer, count both sides, report the ratio. Anyone can rerun the arithmetic from the published transcripts with no API key and no model. We wanted the headline number to be the one nobody has to take on trust.
+
+**The choices we made, and why:**
+
+- **Public dataset, hardest-for-us split.** [LongMemEval](https://arxiv.org/abs/2410.10813), `oracle` split. Oracle keeps only the evidence sessions and drops the distractors, so the full history is as *small* as it gets. That makes our reduction a conservative lower bound: on the full long-context split the gap is larger, not smaller.
+- **A deliberately naive baseline.** "Full history" means re-sending every turn. A real memory-less agent would window or truncate, so 66% is "versus an agent that re-sends everything", stated plainly, not "versus every possible alternative".
+- **Only one thing changes.** The reader prompt is identical in both conditions; only the knowledge block differs. So the token delta is attributable to the memory layer and nothing else.
+- **We report where it loses, too.** On very short conversations the ~2,000-token block is bigger than the whole history, so memory costs more. That row (`single-session-assistant`, -9%) is in the table, not hidden.
+
+The rest of this page is the result, an interactive dashboard, the exact method, and two ways to reproduce it: for free from our published data, or against your own Korely.
+
 ## Dashboard
 
 ![Token efficiency on LongMemEval](dashboards/dashboard.gif)

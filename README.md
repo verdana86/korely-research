@@ -10,16 +10,20 @@
 
 **Status:** early preview · single-user · CLI-first · Apache 2.0 · [honest benchmark](BENCHMARK.md) included
 
+### The one number
+
+On the public **LongMemEval** benchmark, answering from Korely's memory block instead of re-sending the full chat history cuts input tokens by **66%** (pooled; 62% median per question; up to 82% on the long-context tasks). It is deterministic — no LLM, no judge — and you can **reproduce it in 30 seconds with no API key**: see [token-savings/](token-savings/).
+
 ---
 
 ## Start here
 
-This repo is two things in one place: the open-source retrieval engine that powers [Korely](https://korely.com), and two honest, reproducible benchmarks that show what it buys you. Pick the door that matches why you came.
+This repo is two things in one place: the open-source retrieval engine that powers [Korely](https://korely.ai), and two honest, reproducible benchmarks that show what it buys you. Pick the door that matches why you came.
 
 | If you want... | Go here |
 |---|---|
 | To run it on your own markdown notes | [Quickstart](#quickstart) |
-| The **token-efficiency** result (66% fewer input tokens, reproducible with no API key) | [token-savings/](token-savings/) |
+| The **token-efficiency** result (66% fewer input tokens, up to 82% on long-context, reproducible with no API key) | [token-savings/](token-savings/) |
 | The **retrieval** result (entity graph vs vanilla RAG, p@1 0.50 vs 0.00) | [BENCHMARK.md](BENCHMARK.md) |
 | To understand how it works inside (4 diagrams) | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | The 30-second pitch | [What it is](#what-it-is) |
@@ -43,13 +47,13 @@ korely-graphrag/
 
 ## What it is
 
-`korely-graphrag` is the open-source extraction of the retrieval engine that powers [Korely](https://korely.com): an MCP-compatible second brain that goes beyond vanilla RAG by automatically extracting and indexing entities (people, organizations, technologies, concepts) from your notes, then surfacing related items through a knowledge graph.
+`korely-graphrag` is the open-source extraction of the retrieval engine that powers [Korely](https://korely.ai): an MCP-compatible second brain that goes beyond vanilla RAG by automatically extracting and indexing entities (people, organizations, technologies, concepts) from your notes, then surfacing related items through a knowledge graph.
 
 Plug it into Claude Code, Cursor, Claude Desktop, or any MCP client and ask questions about your notes — including questions like *"what else mentions X?"* that flat-file memory and chunk-based RAG can't answer well.
 
 ## Benchmarks
 
-- **[Token efficiency on LongMemEval](token-savings/)**: answering from Korely's memory block instead of re-sending the full conversation uses **66% fewer input tokens** (median 62% per question), reproducible with no API key. Includes an animated dashboard and the raw per-question data.
+- **[Token efficiency on LongMemEval](token-savings/)**: answering from Korely's memory block instead of re-sending the full conversation uses **66% fewer input tokens** (62% median per question, up to 82% on long-context tasks), reproducible with no API key. Includes an animated dashboard and the raw per-question data.
 - **[Retrieval vs vanilla RAG and nano-graphrag](BENCHMARK.md)**: the entity-graph retrieval benchmark.
 
 ## Demo
@@ -176,8 +180,8 @@ This is an early preview. Issues and PRs welcome, but no SLA — this is a side 
 
 ## Relationship to Korely
 
-`korely-graphrag` is a self-contained extraction of the retrieval core used by Korely (the commercial product). The full Korely product adds: web UI, meeting recording + transcription, multi-user collaboration, billing, and a richer chat pipeline. If you want all that, see [korely.com](https://korely.com). If you just want a strong MCP-backed second brain on your own machine, this repo is for you.
+`korely-graphrag` is a self-contained extraction of the retrieval core used by Korely (the commercial product). The full Korely product adds: web UI, meeting recording + transcription, multi-user collaboration, billing, and a richer chat pipeline. If you want all that, see [korely.ai](https://korely.ai). If you just want a strong MCP-backed second brain on your own machine, this repo is for you.
 
 ## License
 
-[Apache 2.0](LICENSE) — do what you want, including commercial use. See LICENSE for the full text.
+[Apache 2.0](LICENSE) — fork it, build on it, use it commercially. The one thing the license does **not** grant is the **"Korely" name** (see [NOTICE](NOTICE)). What makes Korely a product — the hosted memory API, multi-tenant isolation, billing, the chat pipeline — lives in the cloud service, not in this repo (see [Relationship to Korely](#relationship-to-korely)). This engine is open on purpose.

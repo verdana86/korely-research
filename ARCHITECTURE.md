@@ -234,7 +234,7 @@ File: [`src/korely_graphrag/providers/gemini.py`](src/korely_graphrag/providers/
 
 ## Testing
 
-47 tests green — a mix of pure unit tests (chunker, entity normalization,
+49 tests — a mix of pure unit tests (chunker, entity normalization,
 dedup heuristics, tsquery sanitization) and Postgres integration tests
 (schema, hybrid search, graph traversal, MCP tool results, full ingest
 pipeline with a fake provider).
@@ -258,6 +258,6 @@ This is the OSS retrieval core. Korely (the commercial product) adds:
 - A full chat pipeline with reranker, title boost, depth selection, inline citations
 - Rich TipTap editor UI
 
-If you want those, see [korely.com](https://korely.com). If you want a
+If you want those, see [korely.ai](https://korely.ai). If you want a
 self-hosted MCP-backed second brain with a proper entity graph, this repo
 is for you.

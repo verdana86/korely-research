@@ -112,7 +112,7 @@ HTML = r"""<!doctype html>
 <div class="wrap">
   <header>
     <div class="brand"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 3 L21 20 L3 20 Z" fill="none" stroke="#34D399" stroke-width="1.8" stroke-linejoin="round"/></svg>Korely</div>
-    <a class="verify" href="https://github.com/verdana86/korely-research/tree/main/token-savings">run it yourself &rarr;</a>
+    <a class="verify" href="https://github.com/verdana86/korely-graphrag/tree/main/token-savings">run it yourself &rarr;</a>
   </header>
 
   <p class="eyebrow">Token efficiency &middot; LongMemEval</p>

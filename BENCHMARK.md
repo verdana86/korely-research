@@ -165,6 +165,8 @@ Where graphrag beat vanilla (top 5):
 
 Where vanilla beat graphrag (top 5):
 
+- On the *related* queries, vanilla never retrieved the target (hit@5 = 0 across all of them) — nothing to list here, which is exactly the gap the entity graph closes.
+- On the broader precision@1 / recall@5 set, vanilla and graphrag trade individual wins (overall p@1: vanilla 0.65 vs graphrag 0.78). The full per-query breakdown is in `benchmark/results.jsonl`.
 
 ## Reproducibility
 

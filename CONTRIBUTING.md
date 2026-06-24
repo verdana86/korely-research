@@ -5,11 +5,11 @@ Thanks for looking. A few notes to set expectations right upfront.
 ## What this is
 
 `korely-graphrag` is the open-source extraction of the retrieval core that
-powers [Korely](https://korely.com). I maintain it as a side project in
+powers [Korely](https://korely.ai). I maintain it as a side project in
 my spare time — it's not funded, it doesn't have a roadmap committee, and
 there's no SLA on issues or PRs.
 
-It *is* tested (47/47 green as of the initial release) and production-grade
+It *is* tested (49 tests as of this release) and production-grade
 in the sense that Korely commercial runs on the same logic. I'm not going
 to ship breaking changes for fun.
 
@@ -83,4 +83,4 @@ for the style.
 ## Security
 
 Found a security issue? Please email rather than opening a public issue.
-Contact is on [korely.com](https://korely.com).
+Contact is on [korely.ai](https://korely.ai).

@@ -440,8 +440,13 @@ def _write_report(agg: dict, results: list[dict]):
         lines.append("")
         lines.append(f"**What we want reviewers to push on.** The related ground truth is {counts['related']}")
         lines.append("human-reviewed questions on a 24-post corpus. Bigger corpora, multi-author")
-        lines.append("blogs, or different domains will shift the numbers. The methodology is")
-        lines.append("reproducible and we'd welcome pull requests extending it.")
+        lines.append("blogs, or different domains will shift the numbers. Also note that the")
+        lines.append("`related` comparison bundles **two** graphrag advantages — entity-graph")
+        lines.append("traversal *and* a pgvector semantic fallback — against a **title-only**")
+        lines.append('vanilla, so part of the 0.50-vs-0.00 gap is "graph + semantic vs title",')
+        lines.append("not the entity graph in isolation. A fair component-isolating ablation")
+        lines.append("(give vanilla the same seed-embedding fallback) is a tracked follow-up.")
+        lines.append("The methodology is reproducible and we'd welcome pull requests extending it.")
         lines.append("")
 
         if has_nano:

@@ -2,7 +2,7 @@
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-49_passing-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-49-brightgreen.svg)](tests/)
 [![MCP](https://img.shields.io/badge/MCP-native-8A2BE2.svg)](https://modelcontextprotocol.io/)
 [![Gemini](https://img.shields.io/badge/LLM-Gemini-4285F4.svg)](https://ai.google.dev/)
 
@@ -35,7 +35,7 @@ korely-graphrag/
 ├── src/korely_graphrag/   the engine: chunk + embed + entity-extract + hybrid search, served over MCP
 ├── token-savings/         token-efficiency benchmark on LongMemEval (dashboards, data, results, $0 to verify)
 ├── benchmark/             retrieval benchmark: entity graph vs vanilla RAG vs nano-graphrag (corpus + scripts)
-├── tests/                 pytest suite (49 tests)
+├── tests/                 pytest suite — 49 tests (30 need a live Postgres; 19 run standalone)
 ├── docs/images/           demo screenshots used below
 ├── notes/                 drop your own *.md here to index them
 ├── BENCHMARK.md           writeup of the retrieval benchmark

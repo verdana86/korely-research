@@ -43,8 +43,7 @@ def korely_key() -> str:
     k = os.environ.get("KORELY_API_KEY")
     if k:
         return k
-    for p in (os.environ.get("BENCH_ENV"),
-              os.path.expanduser("~/Code/GordonPro/.env"), ".env"):
+    for p in (os.environ.get("BENCH_ENV"), ".env"):
         if p and os.path.exists(p):
             for line in open(p):
                 if line.startswith("KORELY_API_KEY="):

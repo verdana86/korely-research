@@ -45,6 +45,8 @@ The rest of this page is the result, an interactive dashboard, the exact method,
 
 Interactive version: open [`dashboards/index.html`](dashboards/index.html) in any browser (self-contained, no server), or [view it rendered here](https://htmlpreview.github.io/?https://github.com/verdana86/korely-graphrag/blob/main/token-savings/dashboards/index.html). Full still: [`dashboards/dashboard.png`](dashboards/dashboard.png). It regenerates from the results with `python scripts/build_dashboard.py`.
 
+**Illustrative walk-through (a demo, not the benchmark).** [`dashboards/video.html`](dashboards/video.html) animates the same swap on a single hand-built 26-turn coding session: re-sending the full history every turn (18,323 input tokens) vs reading Korely's `get_context()` block instead (6,725) — 63% fewer on that session. It's an intuition pump for the mechanism; the measured, reproducible result is the LongMemEval table below, not this number.
+
 ---
 
 ## Result

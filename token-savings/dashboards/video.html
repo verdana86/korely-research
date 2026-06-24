@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Korely — token savings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Fraunces:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0B0F17; --ink:#E8EDF2; --muted:#9CA3AF; --faint:#6F7884;
+    --blue:#60A5FA; --blue2:#3B82F6; --red:#F87171; --line:#1b2230;
+    --sans:"Geist", ui-sans-serif, -apple-system, "Segoe UI", sans-serif;
+    --serif:"Fraunces", Georgia, serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:#05070c;
+    color:var(--ink);
+    font-family:var(--sans);
+    display:flex; align-items:center; justify-content:center;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ambient page backdrop */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 12%, rgba(59,130,246,.10), transparent 60%),
+      linear-gradient(to right,#0c1018 1px,transparent 1px),
+      linear-gradient(to bottom,#0c1018 1px,transparent 1px);
+    background-size:auto, 46px 46px, 46px 46px;
+    -webkit-mask-image:radial-gradient(ellipse 80% 80% at 50% 40%,#000 50%,transparent 100%);
+            mask-image:radial-gradient(ellipse 80% 80% at 50% 40%,#000 50%,transparent 100%);
+  }
+
+  /* fixed 16:9 stage for clean screen recording */
+  .stage{
+    position:relative; width:1280px; height:720px;
+    background:radial-gradient(ellipse 70% 60% at 50% 0%, #0e1422 0%, var(--bg) 55%);
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:22px; overflow:hidden;
+    box-shadow:0 40px 120px -40px rgba(0,0,0,.8);
+    padding:34px 44px 30px;
+    display:flex; flex-direction:column;
+  }
+  .stage::after{ /* soft blue corner glow */
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse 40% 60% at 100% 100%, rgba(59,130,246,.10), transparent 60%);
+  }
+
+  /* header */
+  .top{display:flex; align-items:center; justify-content:space-between; z-index:2}
+  .brand{display:flex; align-items:center; gap:10px}
+  .brand svg{display:block}
+  .brand b{font-weight:600; font-size:18px; letter-spacing:-.01em}
+  .eyebrow{font-size:11px; font-weight:600; letter-spacing:.22em; color:var(--faint); text-transform:uppercase}
+
+  /* headline */
+  .head{margin-top:18px; z-index:2}
+  .head h1{margin:0; font-size:30px; font-weight:600; letter-spacing:-.02em; line-height:1.12}
+  .head p{margin:8px 0 0; font-size:15px; color:var(--muted); max-width:680px; line-height:1.5}
+
+  /* body grid: chart left, payoff right */
+  .body{flex:1; display:grid; grid-template-columns:1fr 360px; gap:26px; margin-top:14px; min-height:0; z-index:2}
+  .chartwrap{position:relative; min-height:0}
+  svg.chart{width:100%; height:100%; display:block}
+
+  .panel{
+    align-self:center;
+    border-left:1px solid rgba(255,255,255,.08);
+    padding-left:26px;
+    opacity:0; transform:translateY(10px);
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  .panel.show{opacity:1; transform:none}
+  .big{font-size:84px; font-weight:700; line-height:.9; letter-spacing:-.03em;
+       background:linear-gradient(180deg,#93C5FD,#3B82F6); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .big .pct{font-size:46px}
+  .big-sub{font-size:15px; color:var(--muted); margin-top:10px; line-height:1.4}
+  .rule{height:1px; background:rgba(255,255,255,.08); margin:22px 0}
+  .money{font-size:44px; font-weight:700; letter-spacing:-.02em; color:var(--ink)}
+  .money .cur{color:var(--blue)}
+  .money-sub{font-size:13px; color:var(--muted); margin-top:6px}
+  .close{font-family:var(--serif); font-style:italic; font-size:21px; color:#C7CED6; margin-top:18px;
+         opacity:0; transition:opacity .7s ease}
+  .close.show{opacity:1}
+
+  /* legend chips */
+  .legend{position:absolute; top:4px; left:8px; display:flex; gap:18px; font-size:12.5px}
+  .legend span{display:inline-flex; align-items:center; gap:7px; color:var(--muted)}
+  .dot{width:9px; height:9px; border-radius:9px}
+  .dot.r{background:var(--red)} .dot.b{background:var(--blue)}
+
+  /* footnote */
+  .foot{position:absolute; left:44px; bottom:12px; font-size:11px; color:var(--faint); z-index:2}
+
+  /* controls (outside the framed shot) */
+  .controls{position:fixed; bottom:18px; right:20px; display:flex; gap:10px; align-items:center}
+  .replay{font-family:var(--sans); font-size:13px; color:var(--ink); background:rgba(255,255,255,.06);
+          border:1px solid rgba(255,255,255,.14); border-radius:9px; padding:9px 16px; cursor:pointer}
+  .replay:hover{background:rgba(255,255,255,.11)}
+  .khint{font-size:12px; color:var(--faint)}
+
+  .svc{font-variant-numeric:tabular-nums}
+  #headR,#headB,#tagR,#tagB{opacity:0}
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="top">
+      <div class="brand">
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3 L21 20 L3 20 Z" fill="none" stroke="#60A5FA" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+        <b>Korely</b>
+      </div>
+      <div class="eyebrow">Illustrative walk-through</div>
+    </div>
+
+    <div class="head">
+      <h1>The same 26-turn coding session, two ways.</h1>
+      <p>Without memory the agent re-reads the whole history on every turn. With Korely it reads only what is true now, a small <span class="svc">get_context()</span> block.</p>
+    </div>
+
+    <div class="body">
+      <div class="chartwrap">
+        <div class="legend">
+          <span><i class="dot r"></i>Without memory</span>
+          <span><i class="dot b"></i>With Korely</span>
+        </div>
+        <svg class="chart" id="chart" viewBox="0 0 1000 440" preserveAspectRatio="xMidYMid meet">
+          <g id="grid"></g>
+          <path id="areaR" fill="rgba(248,113,113,.10)" stroke="none"></path>
+          <path id="areaB" fill="rgba(96,165,250,.14)" stroke="none"></path>
+          <polyline id="lineR" fill="none" stroke="#F87171" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          <polyline id="lineB" fill="none" stroke="#60A5FA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          <circle id="headR" r="5.5" fill="#F87171"></circle>
+          <circle id="headB" r="5.5" fill="#60A5FA"></circle>
+          <text id="tagR" fill="#F4A6A6" font-size="17" font-weight="600" font-family="Geist" text-anchor="end"></text>
+          <text id="tagB" fill="#A9CBFB" font-size="17" font-weight="600" font-family="Geist" text-anchor="end"></text>
+          <text x="64" y="432" fill="#6F7884" font-size="12" font-family="Geist">turn 1</text>
+          <text x="936" y="432" fill="#6F7884" font-size="12" font-family="Geist" text-anchor="end">turn 26</text>
+        </svg>
+      </div>
+
+      <div class="panel" id="panel">
+        <div class="big"><span id="pct">0</span><span class="pct">%</span></div>
+        <div class="big-sub">fewer input tokens over the session</div>
+        <div class="rule"></div>
+        <div class="money svc" style="font-size:34px">18,323 <span style="color:var(--faint);font-weight:500">&rarr;</span> <span class="cur">6,725</span></div>
+        <div class="money-sub">input tokens: full history vs Korely <span class="svc">get_context()</span></div>
+        <div class="close" id="close">Reads only what is true now.</div>
+      </div>
+    </div>
+
+    <div class="foot">26-turn coding session &middot; real input-token counts (tiktoken) &middot; illustrative demo, not a benchmark</div>
+  </div>
+
+  <div class="controls">
+    <span class="khint">press R to replay</span>
+    <button class="replay" id="replay">Replay</button>
+  </div>
+
+<script>
+(() => {
+  // [turn, withoutMemoryTokens, korelyTokens] — real tiktoken counts from demo.py
+  const DATA = [
+    [1,79,87],[2,156,104],[3,207,128],[4,250,137],[5,295,154],[6,348,183],
+    [7,399,195],[8,455,222],[9,506,233],[10,538,234],[11,596,257],[12,644,262],
+    [13,686,283],[14,728,299],[15,779,298],[16,811,287],[17,863,296],[18,901,311],
+    [19,932,313],[20,978,323],[21,1026,338],[22,1074,338],[23,1124,364],[24,1185,359],
+    [25,1354,363],[26,1409,357]
+  ];
+  const N = DATA.length;
+  const totalR = DATA.reduce((s,d)=>s+d[1],0);   // 18,323 — full history, cumulative
+  const totalB = DATA.reduce((s,d)=>s+d[2],0);    // 6,725 — with Korely get_context()
+  const PCT = Math.round((1 - totalB/totalR) * 100); // 63
+
+  // svg scaling
+  const VW=1000, VH=440, PAD={l:64,r:54,t:26,b:42}, YMAX=1500;
+  const x = t => PAD.l + (t-1)/(N-1)*(VW-PAD.l-PAD.r);
+  const y = v => (VH-PAD.b) - v/YMAX*(VH-PAD.t-PAD.b);
+
+  const $ = id => document.getElementById(id);
+  const lineR=$("lineR"), lineB=$("lineB"), areaR=$("areaR"), areaB=$("areaB");
+  const headR=$("headR"), headB=$("headB"), tagR=$("tagR"), tagB=$("tagB");
+  const panel=$("panel"), pctEl=$("pct"), closeEl=$("close");
+
+  // static grid
+  (() => {
+    let g="";
+    for(let i=0;i<=3;i++){
+      const v=YMAX*i/3, yy=y(v);
+      g+=`<line x1="${PAD.l}" y1="${yy}" x2="${VW-PAD.r}" y2="${yy}" stroke="#141a24" stroke-width="1"/>`;
+      g+=`<text x="${PAD.l-10}" y="${yy+4}" fill="#5b6573" font-size="11" font-family="Geist" text-anchor="end">${v.toLocaleString()}</text>`;
+    }
+    $("grid").innerHTML=g;
+  })();
+
+  const valAt = (series, t) => {
+    const i = Math.floor(t);
+    if (i >= N) return DATA[N-1][series];
+    const f = t - i;
+    return DATA[i-1][series] + (DATA[i][series]-DATA[i-1][series])*f;
+  };
+  const ptsUpTo = (series, t) => {
+    const pts=[]; const full=Math.min(Math.floor(t), N);
+    for(let k=1;k<=full;k++) pts.push([x(k), y(DATA[k-1][series])]);
+    if (t < N) pts.push([x(t), y(valAt(series,t))]);
+    return pts;
+  };
+  const setSeries = (line, area, series, t) => {
+    const pts = ptsUpTo(series, t);
+    line.setAttribute("points", pts.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" "));
+    const last = pts[pts.length-1], first = pts[0];
+    area.setAttribute("d", `M ${first[0]} ${VH-PAD.b} L ` + pts.map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" L ") + ` L ${last[0]} ${VH-PAD.b} Z`);
+    return last;
+  };
+
+  const easeOut = p => 1 - Math.pow(1-p, 3);
+  const fmt = n => Math.round(n).toLocaleString();
+
+  let raf=0;
+  function reset(){
+    cancelAnimationFrame(raf);
+    panel.classList.remove("show"); closeEl.classList.remove("show");
+    pctEl.textContent="0";
+    [lineR,lineB,areaR,areaB].forEach(e=>e.setAttribute(e.tagName==="polyline"?"points":"d",""));
+    [headR,headB,tagR,tagB].forEach(e=>e.style.opacity=0);
+  }
+
+  function countUp(el, to, dur, fmtFn){
+    const t0=performance.now();
+    (function step(now){
+      const p=Math.min(1,(now-t0)/dur);
+      el.textContent=fmtFn(Math.round(easeOut(p)*to));
+      if(p<1) requestAnimationFrame(step);
+    })(t0);
+  }
+
+  function play(){
+    reset();
+    const DRAW=4600;
+    const t0=performance.now();
+    [headR,headB,tagR,tagB].forEach(e=>e.style.opacity=1);
+
+    (function frame(now){
+      const p = Math.min(1, (now-t0)/DRAW);
+      const e = easeOut(p);
+      const t = 1 + e*(N-1);
+
+      const lr = setSeries(lineR, areaR, 1, t);
+      const lb = setSeries(lineB, areaB, 2, t);
+      headR.setAttribute("cx",lr[0]); headR.setAttribute("cy",lr[1]);
+      headB.setAttribute("cx",lb[0]); headB.setAttribute("cy",lb[1]);
+
+      const vr = valAt(1,t), vb = valAt(2,t);
+      tagR.setAttribute("x", lr[0]-12); tagR.setAttribute("y", lr[1]-10); tagR.textContent = fmt(vr)+" tok";
+      tagB.setAttribute("x", lb[0]-12); tagB.setAttribute("y", lb[1]+22); tagB.textContent = fmt(vb)+" tok";
+
+      if(p<1){ raf=requestAnimationFrame(frame); }
+      else {
+        panel.classList.add("show");
+        countUp(pctEl, PCT, 900, n=>n);
+        setTimeout(()=>closeEl.classList.add("show"), 1100);
+      }
+    })(t0);
+  }
+
+  $("replay").addEventListener("click", play);
+  document.addEventListener("keydown", e => { if(e.key==="r"||e.key==="R") play(); });
+  window.addEventListener("load", () => setTimeout(play, 650));
+})();
+</script>
+</body>
+</html>

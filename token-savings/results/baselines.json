@@ -1,0 +1,30 @@
+{
+  "n": 178,
+  "korely_block_avg_prompt_tokens": 1902,
+  "baselines": {
+    "full history (the published 66% baseline)": {
+      "pooled_reduction_pct": 65.7,
+      "median_reduction_pct": 61.8,
+      "mean_reduction_pct": 53.7,
+      "korely_costs_more": "20/178"
+    },
+    "recency window @2000 tok (= Korely budget)": {
+      "pooled_reduction_pct": 2.6,
+      "median_reduction_pct": 0.8,
+      "mean_reduction_pct": 1.8,
+      "korely_costs_more": "84/178"
+    },
+    "recency window @4000 tok (2x budget)": {
+      "pooled_reduction_pct": 46.9,
+      "median_reduction_pct": 47.9,
+      "mean_reduction_pct": 41.4,
+      "korely_costs_more": "20/178"
+    },
+    "recency window @matched (per-q equal budget)": {
+      "pooled_reduction_pct": -0.7,
+      "median_reduction_pct": 0.0,
+      "mean_reduction_pct": -1.3,
+      "korely_costs_more": "176/178"
+    }
+  }
+}

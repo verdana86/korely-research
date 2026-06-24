@@ -22,14 +22,15 @@ benchmark/karpathy/
 benchmark/karpathy-small/
 benchmark/data/
 
-# Benchmark run artefacts (generated, not committed)
-benchmark/questions.jsonl
+# Benchmark review scratch (not the published canonical result)
 benchmark/questions_for_review.md
-benchmark/results.jsonl
 
 # nano-graphrag ingest artefacts (regenerate via `ingest_nano.py`)
 benchmark/bench_nano/
-benchmark/nano_predictions.jsonl
+
+# NOTE: the canonical benchmark inputs/outputs ARE committed so BENCHMARK.md is
+# verifiable from a fresh clone — benchmark/questions.jsonl, benchmark/results.jsonl,
+# benchmark/nano_predictions.jsonl. Do NOT re-ignore them.
 
 # Local reproduction outputs (regenerate via token-savings/scripts/reproduce.py)
 /results/

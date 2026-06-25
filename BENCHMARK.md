@@ -182,7 +182,7 @@ cp .env.example .env  # set GEMINI_API_KEY
 docker compose up -d db
 # fetch Karpathy corpus
 git clone --depth 1 https://github.com/karpathy/karpathy.github.io /tmp/kb
-mkdir -p benchmark/karpathy && cp /tmp/kb/_posts/*.markdown benchmark/karpathy/
+mkdir -p benchmark/karpathy && cp /tmp/kb/_posts/*.md* benchmark/karpathy/   # *.md and *.markdown
 # ingest + 2-system benchmark (vanilla vs korely-graphrag)
 docker compose run --rm app korely-graphrag ingest --reset /app/benchmark/karpathy
 docker compose run --rm app python /app/benchmark/run_benchmark.py

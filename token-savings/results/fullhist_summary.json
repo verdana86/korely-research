@@ -1,0 +1,39 @@
+{
+  "model": "gemini-2.5-flash",
+  "split": "longmemeval_oracle",
+  "condition": "full history (send the entire conversation, ~5,500 tok)",
+  "n": 178,
+  "overall_pct": 83.1,
+  "axes": {
+    "knowledge-update": {
+      "n": 78,
+      "correct": 72,
+      "pct": 92.3
+    },
+    "multi-session": {
+      "n": 20,
+      "correct": 12,
+      "pct": 60.0
+    },
+    "single-session-assistant": {
+      "n": 20,
+      "correct": 20,
+      "pct": 100.0
+    },
+    "single-session-preference": {
+      "n": 20,
+      "correct": 8,
+      "pct": 40.0
+    },
+    "single-session-user": {
+      "n": 20,
+      "correct": 18,
+      "pct": 90.0
+    },
+    "temporal-reasoning": {
+      "n": 20,
+      "correct": 18,
+      "pct": 90.0
+    }
+  }
+}

@@ -9,7 +9,9 @@ powers [Korely](https://korely.ai). I maintain it as a side project in
 my spare time — it's not funded, it doesn't have a roadmap committee, and
 there's no SLA on issues or PRs.
 
-It *is* tested (49 tests as of this release) and production-grade
+It *is* tested (49 tests as of this release; 36 need a local Postgres via
+`docker compose up -d db`, 13 run standalone — a bare `pytest` with no DB
+shows skips, not failures) and production-grade
 in the sense that Korely commercial runs on the same logic. I'm not going
 to ship breaking changes for fun.
 

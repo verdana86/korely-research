@@ -6,13 +6,15 @@
 [![MCP](https://img.shields.io/badge/MCP-native-8A2BE2.svg)](https://modelcontextprotocol.io/)
 [![Gemini](https://img.shields.io/badge/LLM-Gemini-4285F4.svg)](https://ai.google.dev/)
 
-> A second brain for your markdown notes — with an entity graph that finds the connections you didn't write down.
+> The open retrieval engine behind [Korely](https://korely.ai): an entity-graph "second brain" for your markdown notes, served over MCP — it surfaces the connections you never wrote down.
 
-**Status:** early preview · single-user · CLI-first · Apache 2.0 · [honest benchmark](BENCHMARK.md) included
+**Status:** Apache 2.0 · reproducible benchmarks included · early preview, single-user, CLI-first
 
 ### The one number
 
-On the public **LongMemEval** benchmark, at an **equal token budget**, answering from Korely's selected memory block answers **76% of questions correctly versus 42%** for a same-size recency window — *same cost, 1.8× the answers right*. (The block is also **66% smaller** than re-sending the whole history, but that's just truncation; the point is *which* tokens — the selected ones answer far more often.) Both reproduce from this repo: [token-savings/](token-savings/).
+On the public **LongMemEval** benchmark, at an **equal token budget**, a reader answers **76% of questions correctly from Korely's selected memory block versus 42% from a same-size recency window** — same cost, **1.8× the answers right**, and within ~7 points of re-sending the *entire* history (83.1%) at a third of the tokens.
+
+That selection number is produced by Korely's hosted `get_context()` — the cloud memory layer — and you reproduce it from this repo against the free API. The **open engine in this repo** (`src/`) is the retrieval core (hybrid search + the entity graph); it reproduces the [retrieval benchmark](BENCHMARK.md) (p@1 0.50 vs 0.00 vs vanilla RAG). Full method + raw per-answer data: [token-savings/](token-savings/).
 
 ---
 
@@ -23,7 +25,7 @@ This repo is two things in one place: the open-source retrieval engine that powe
 | If you want... | Go here |
 |---|---|
 | To run it on your own markdown notes | [Quickstart](#quickstart) |
-| The **memory-quality** result: 76% vs 42% correct at equal token budget (plus 66% fewer tokens vs full history) | [token-savings/](token-savings/) |
+| The **memory-quality** result: 76% vs 42% correct at equal token budget (Korely's hosted memory) | [token-savings/](token-savings/) |
 | The **retrieval** result (entity graph vs vanilla RAG, p@1 0.50 vs 0.00) | [BENCHMARK.md](BENCHMARK.md) |
 | To understand how it works inside (4 diagrams) | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | The 30-second pitch | [What it is](#what-it-is) |
@@ -35,7 +37,7 @@ korely-graphrag/
 ├── src/korely_graphrag/   the engine: chunk + embed + entity-extract + hybrid search, served over MCP
 ├── token-savings/         memory-quality + token benchmarks on LongMemEval (dashboards, data, results)
 ├── benchmark/             retrieval benchmark: entity graph vs vanilla RAG vs nano-graphrag (corpus + scripts)
-├── tests/                 pytest suite — 49 tests (30 need a live Postgres; 19 run standalone)
+├── tests/                 pytest suite — 49 tests (36 need a live Postgres; 13 run standalone)
 ├── docs/images/           demo screenshots used below
 ├── notes/                 drop your own *.md here to index them
 ├── BENCHMARK.md           writeup of the retrieval benchmark
@@ -51,9 +53,15 @@ korely-graphrag/
 
 Plug it into Claude Code, Cursor, Claude Desktop, or any MCP client and ask questions about your notes — including questions like *"what else mentions X?"* that flat-file memory and chunk-based RAG can't answer well.
 
+### Three ways to use it
+
+- **CLI** — `korely-graphrag ingest / serve / stats / export` over your own notes (see [Quickstart](#quickstart)).
+- **MCP server** — point Claude Code, Cursor, Claude Desktop, or any MCP client at your vault (`fastmcp`, SSE).
+- **Hosted memory API + SDK** — the cloud Korely memory layer (the one that scores 76 vs 42) is a REST API with Python + Node SDKs (the `korely-memory` package). See [korely.ai/agents](https://korely.ai/agents). *Not in this repo — this repo is the open engine.*
+
 ## Benchmarks
 
-- **[Memory quality on LongMemEval](token-savings/)**: at an equal token budget, Korely's selected block answers **76% of questions correctly vs 42%** for a same-size recency window (**+34 points**); the block is also **66% smaller** than re-sending the full history. Animated dashboard, raw per-question data, and judge transcripts included.
+- **[Memory quality on LongMemEval](token-savings/)**: at an equal token budget, Korely's selected block answers **76% of questions correctly vs 42%** for a same-size recency window (**+34 points**), within ~7 points of full-context (83.1%) at a third of the tokens. Animated dashboard, raw per-answer data, and judge transcripts included.
 - **[Retrieval vs vanilla RAG and nano-graphrag](BENCHMARK.md)**: the entity-graph retrieval benchmark.
 
 ## Demo
@@ -180,7 +188,7 @@ This is an early preview. Issues and PRs welcome, but no SLA — this is a side 
 
 ## Relationship to Korely
 
-`korely-graphrag` is a self-contained extraction of the retrieval core used by Korely (the commercial product). The full Korely product adds: web UI, meeting recording + transcription, multi-user collaboration, billing, and a richer chat pipeline. If you want all that, see [korely.ai](https://korely.ai). If you just want a strong MCP-backed second brain on your own machine, this repo is for you.
+`korely-graphrag` is a self-contained extraction of the retrieval core used by Korely (the commercial product). The full Korely product adds: web UI, meeting recording + transcription, multi-user collaboration, billing, a richer chat pipeline, and a **hosted memory API with Python/Node SDKs** (`korely-memory`) — the cloud layer whose `get_context()` produces the 76-vs-42 result above. If you want all that, see [korely.ai](https://korely.ai). If you just want a strong MCP-backed second brain on your own machine, this repo is for you.
 
 ## License
 

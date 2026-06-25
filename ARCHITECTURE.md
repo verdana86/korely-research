@@ -257,6 +257,7 @@ This is the OSS retrieval core. Korely (the commercial product) adds:
 - Multi-user auth, Stripe billing, quotas
 - A full chat pipeline with reranker, title boost, depth selection, inline citations
 - Rich TipTap editor UI
+- The hosted **`get_context()` memory layer** — bi-temporal facts + contradiction resolution that build the ~2,000-token block behind the [LongMemEval 76-vs-42 result](token-savings/). That *selection* runs in the cloud, not here; the open engine in this repo is the retrieval core it is built on (`search`, `get_related`, the entity graph).
 
 If you want those, see [korely.ai](https://korely.ai). If you want a
 self-hosted MCP-backed second brain with a proper entity graph, this repo

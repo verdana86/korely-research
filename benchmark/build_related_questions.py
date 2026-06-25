@@ -1,6 +1,6 @@
 """Patch questions.jsonl with human-reviewed related-question ground truth.
 
-Reads related_ground_truth.json (produced by Massimiliano's review of the
+Reads related_ground_truth.json (produced by a human reviewer's pass over the
 Gemini-generated candidates), strips all existing type=='related' entries
 from questions.jsonl, and inserts the new human-reviewed ones.
 

@@ -21,24 +21,27 @@ Same reader, same prompt, same per-question token budget; only the memory block 
 
 | question type | N | full history (~5,500 tok) | Korely block (~1,900) | recency window (~1,900) |
 |---|---:|---:|---:|---:|
-| temporal-reasoning | 20 | 85% | **80%** | 10% |
-| multi-session | 20 | 70% | **50%** | 5% |
+| temporal-reasoning | 20 | 90% | **80%** | 10% |
+| multi-session | 20 | 60% | **50%** | 5% |
 | single-session-user | 20 | 90% | **70%** | 25% |
 | knowledge-update | 78 | 92% | **87%** | 58% |
 | single-session-preference | 20 | 40% | **40%** | 15% |
 | single-session-assistant | 20 | 100% | 100% | 95% |
-| **all** | **178** | **83.7%** | **76.4%** | **42.1%** |
+| **all** | **178** | **83.1%** | **76.4%** | **42.1%** |
 
-Read across the three conditions: **at one-third the tokens, Korely keeps ~91% of the accuracy of sending the entire conversation (76.4% vs 83.7%), and nearly doubles a same-size recency window (42.1%).** The honest trade is real — Korely gives up ~7 points versus dumping everything, biggest on multi-session and single-session-user (the hardest to compress) — but it does so at a third of the cost and far above the obvious cheap alternative. The window can't reach evidence in **old** sessions (temporal spans, cross-session counts); it answers "I don't know" or guesses. On short single-session chats all three tie — the whole conversation already fits the budget, so there's nothing to select. Reported, not hidden.
+Read across the three conditions: **at one-third the tokens, Korely keeps ~92% of the accuracy of sending the entire conversation (76.4% vs 83.1%), and nearly doubles a same-size recency window (42.1%).** The honest trade is real — Korely gives up ~7 points versus dumping everything, biggest on single-session-user and the temporal / multi-session axes (the hardest to compress) — but it does so at a third of the cost and far above the obvious cheap alternative. The window can't reach evidence in **old** sessions (temporal spans, cross-session counts); it answers "I don't know" or guesses. On short single-session chats all three tie — the whole conversation already fits the budget, so there's nothing to select. Reported, not hidden.
 
-**Honest scope.** This is judge-based, so unlike the token math it is not bit-deterministic: the reader and judge were both `gemini-2.5-flash` at temperature 0. The *delta* is robust to the judge because both conditions are graded identically. The recency baseline is the fairest we could build — the most recent **complete** turns that fit the same token budget as Korely's block (never mid-turn; 0 empty contexts across 178). Every per-answer judgement ships in [`results/accuracy.jsonl`](results/accuracy.jsonl) so you can audit or re-grade it.
+**Honest scope.** This is judge-based, so unlike the token math it is not bit-deterministic: the reader and judge were both `gemini-2.5-flash` at temperature 0. The *delta* is robust to the judge because both conditions are graded identically. The recency baseline is the fairest we could build — the most recent **complete** turns that fit the same token budget as Korely's block (never mid-turn; 0 empty contexts across 178). Six of the 178 are abstention questions (no answer exists in the history); on those, an answer is scored correct only when the reader correctly declines ("I don't know"), identically for both conditions. Every per-answer judgement ships in [`results/accuracy.jsonl`](results/accuracy.jsonl) (Korely + recency window) and [`results/fullhist_accuracy.jsonl`](results/fullhist_accuracy.jsonl) (full history), so you can audit or re-grade all three columns.
 
 ```bash
 cd token-savings
 pip3 install google-generativeai tiktoken huggingface_hub
-export GEMINI_API_KEY=...          # any Gemini key; ~$0.30 for the full 178
-python3 scripts/accuracy.py
+export GEMINI_API_KEY=...          # YOUR OWN Gemini key — free tier works; ~$0.30 for the full 178
+python3 scripts/accuracy.py             # Korely block vs recency window  -> the 76.4 / 42.1 columns
+python3 scripts/fullhist_accuracy.py    # full-history ceiling            -> the 83.1 column
 ```
+
+> Reproducing the accuracy number uses **your own** Gemini key (the repo ships no key). The token-efficiency number above needs none. The harness pins the legacy `google-generativeai` SDK to match the published transcripts; the engine itself uses the newer `google-genai`.
 
 ---
 
@@ -149,8 +152,8 @@ We tokenize **both** prompts with the same tokenizer and report the reduction.
 
 - **Dataset.** [LongMemEval](https://arxiv.org/abs/2410.10813) (Wu et al., 2024), public MIT mirror [`xiaowu0162/longmemeval-cleaned`](https://huggingface.co/datasets/xiaowu0162/longmemeval-cleaned), file `longmemeval_oracle.json`. The **oracle** split has only the answer-evidence sessions (no distractors), so the full history is as small as it gets and the reduction here is a **conservative lower bound**; on the full long-context split (`longmemeval_s`), histories run past the context window while the block stays small, so the reduction is far larger (a tracked follow-up).
 - **Question mix.** `knowledge-update` is a full census (78/78). The other five axes are 20-question subsamples of a larger pool, and the `multi-session` 20 skew toward larger histories (which lifts that axis's 82%). The **overall** number is robust to this: pooled 66%, per-question median 62%, dataset-re-weighted 60%.
-- **Tokenizer.** `tiktoken o200k_base` for both conditions, so the **ratio** is apples-to-apples. The actual reader was Llama-3.3-70B (different tokenizer); we expect the ratio to be broadly tokenizer-insensitive but have not measured the spread, so treat exact percentages as ±a few points.
-- **Soft budget.** The block targets ~2,000 tokens but is not hard-capped: **65 of 178** blocks exceed it (max 2,566). It is a soft target; the reduction holds regardless. A larger budget would trivially raise evidence retention and lower the reduction, so the 66% / 47% pair is one point on a budget tradeoff, not a tuned sweet spot.
+- **Tokenizer.** `tiktoken o200k_base` for both conditions, so the **ratio** is apples-to-apples and reader-agnostic: token counts depend on the tokenizer, not on which model reads the prompt. Treat exact percentages as ±a few points across tokenizers. (The separate *accuracy* result above is judged by `gemini-2.5-flash` — see that section.)
+- **Soft budget.** The block targets ~2,000 tokens but is not hard-capped: **65 of 178** blocks exceed it (largest block 2,488 tokens; 2,566 once the prompt template is added). It is a soft target; the reduction holds regardless. A larger budget would trivially raise evidence retention and lower the reduction, so the 66% / 47% pair is one point on a budget tradeoff, not a tuned sweet spot.
 - **Objective, no judge (this section).** Token counts and evidence retention need no LLM. **Answer accuracy** (% correct, judged) is the separate, judge-dependent metric measured in [Accuracy at equal budget](#accuracy-at-equal-budget) above.
 - **Source data.** `data/korely_longmemeval_oracle.jsonl` is one row per question; `retrieved_context` is Korely's actual `get_context()` output, logged verbatim.
 
@@ -181,6 +184,15 @@ Self-contained (no private harness): public dataset in, your Korely memory out, 
 ## Cost
 
 Pooled, the full-history condition averages 5,547 input tokens/question vs 1,902 with Korely, i.e. **3,645 fewer input tokens per turn**. Multiply by your model's input price and your turn volume. Only the input shrinks (output is unaffected); the reduction is the same across providers, only the per-token price changes.
+
+## Research scratch (negative results)
+
+Three exploratory A/B scripts ship here for transparency — they were run and **not** adopted, because the honest answer was "no". They import only the committed helpers + dataset in this folder, so they reproduce on a fresh clone (with a Gemini key):
+
+- [`scripts/fusion_ab.py`](scripts/fusion_ab.py) — does fusing a lexical (full-text-search) signal with vector retrieval via Reciprocal Rank Fusion beat vector-only? **No.** On a realistic multi-topic pool it *hurt* recall (−3 to −5 pts): in LongMemEval, keyword overlap correlates with the distractors, not the answer. Vector-only kept.
+- [`scripts/contextual_retrieval_ab.py`](scripts/contextual_retrieval_ab.py) + [`scripts/contextual_retrieval_pooled_ab.py`](scripts/contextual_retrieval_pooled_ab.py) — does an Anthropic-style context prefix before embedding help? On the oracle split it is degenerate (every chunk is already on-topic, nothing to disambiguate); a small positive (+1–3 pts recall) appears only once distractors are added.
+
+Kept as a record of what we tried, not as part of the headline pipeline.
 
 ## Citation
 

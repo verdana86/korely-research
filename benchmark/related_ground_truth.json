@@ -1,7 +1,7 @@
 {
   "_meta": {
     "created": "2026-04-19",
-    "method": "Gemini-2.5-flash proposed candidates from title+abstract only (no entity graph, no retrieval). Massimiliano reviewed each decision with discipline: same architecture / same dataset / same methodological theme / same narrative style. Weak links (generic 'both about neural networks') dropped. Rejected items overridden where Gemini was too strict.",
+    "method": "Gemini-2.5-flash proposed candidates from title+abstract only (no entity graph, no retrieval). A human reviewer vetted each decision with discipline: same architecture / same dataset / same methodological theme / same narrative style. Weak links (generic 'both about neural networks') dropped. Rejected items overridden where Gemini was too strict.",
     "dropped_from_benchmark": [
       "d7ad6c9c-f109-4556-a211-44f8b3e0a3e5"
     ],

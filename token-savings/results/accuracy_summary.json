@@ -1,0 +1,48 @@
+{
+  "model": "gemini-2.5-flash",
+  "n": 178,
+  "axes": {
+    "knowledge-update": {
+      "n": 78,
+      "korely_acc": 87.2,
+      "window_acc": 57.7,
+      "delta": 29.5
+    },
+    "multi-session": {
+      "n": 20,
+      "korely_acc": 50.0,
+      "window_acc": 5.0,
+      "delta": 45.0
+    },
+    "single-session-assistant": {
+      "n": 20,
+      "korely_acc": 100.0,
+      "window_acc": 95.0,
+      "delta": 5.0
+    },
+    "single-session-preference": {
+      "n": 20,
+      "korely_acc": 40.0,
+      "window_acc": 15.0,
+      "delta": 25.0
+    },
+    "single-session-user": {
+      "n": 20,
+      "korely_acc": 70.0,
+      "window_acc": 25.0,
+      "delta": 45.0
+    },
+    "temporal-reasoning": {
+      "n": 20,
+      "korely_acc": 80.0,
+      "window_acc": 10.0,
+      "delta": 70.0
+    }
+  },
+  "overall": {
+    "n": 178,
+    "korely_acc": 76.4,
+    "window_acc": 42.1,
+    "delta": 34.3
+  }
+}

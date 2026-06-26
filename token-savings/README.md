@@ -6,13 +6,14 @@ On the public [LongMemEval](https://arxiv.org/abs/2410.10813) benchmark (oracle 
 
 > ## 76% correct vs 42% — same token budget, 1.8× the answers right.
 
-**What this page says, in five lines:**
+**What this page says, in six lines:**
 
 1. One question: at the **same token budget**, does picking the right memories beat keeping only the most recent chat turns?
 2. Answer: **yes — 76% of answers correct vs 42%** for a same-size recency window (+34 points, same cost).
 3. There's also a "66% fewer tokens" figure, but the page says plainly it's a trivial win (any truncation does it) — the real win is *which* tokens, not *fewer*.
 4. Re-sending the **entire** history scores 83%, so the selection keeps ~92% of that accuracy at a third of the cost.
 5. The [significance check](#is-the-difference-real-or-did-we-get-lucky) shows the +34 is real, not luck (McNemar, ~1 in a trillion).
+6. The **absolute** depends on which reader LLM grades it (76% with Gemini Flash, 63% with GPT-4o); the **+34 gap is what's robust** — swap the reader and it holds (+27 with GPT-4o, still significant). We [document that](#reader-sensitivity-the-absolute-moves-the-delta-holds), not hide it.
 
 Two measurements live here, and the order is deliberate:
 
@@ -88,7 +89,28 @@ Two things to read off this. First, the two ranges **do not even overlap**: Kore
 
 **Why we go to this trouble.** A number on its own is just a claim. The same arithmetic that produces "76 vs 42" can also tell you whether to *believe* it, and that second step is the one most memory benchmarks skip. Ours survives the exact test, the textbook test, and the confidence intervals — all of it reproducible from the published per-answer file with **no API key and no model**: run [`scripts/stats.py`](scripts/stats.py); it reads [`results/accuracy.jsonl`](results/accuracy.jsonl) and writes [`results/stats.json`](results/stats.json).
 
-**Honest scope.** This is judge-based, so unlike the token math it is not bit-deterministic: the reader and judge were both `gemini-2.5-flash` at temperature 0. The *delta* is robust to the judge because both conditions are graded identically. The recency baseline is the fairest we could build — the most recent **complete** turns that fit the same token budget as Korely's block (never mid-turn; 0 empty contexts across 178). Six of the 178 are abstention questions (no answer exists in the history); on those, an answer is scored correct only when the reader correctly declines ("I don't know"), identically for both conditions. On `knowledge-update` questions (78 of 178) Korely's block also carries a short `## Known facts` section of resolved bi-temporal facts *alongside* the verbatim turns — a real capability of the memory layer, not just turn selection, while the recency window sees only raw turns; we flag it so the comparison is explicit (it's part of what a memory layer buys). Every per-answer judgement ships in [`results/accuracy.jsonl`](results/accuracy.jsonl) (Korely + recency window) and [`results/fullhist_accuracy.jsonl`](results/fullhist_accuracy.jsonl) (full history), so you can audit or re-grade all three columns.
+### Reader sensitivity: the absolute moves, the delta holds
+
+The 76.4% is measured with `gemini-2.5-flash` as both reader and judge. Swap the reader and the **absolute** changes — this is true of every memory benchmark, and almost none report it. We do, because it's the whole point: an accuracy number without a stated reader, judge, and split is unfalsifiable. Re-running the identical harness with `gpt-4o` as reader + judge:
+
+| reader + judge | Korely block | recency window | delta | significance |
+|---|---:|---:|---:|---|
+| `gemini-2.5-flash` | 76.4% | 42.1% | **+34.3** | McNemar exact p = 7.8e-13 |
+| `gpt-4o` | 63.5% | 36.5% | **+27.0** | McNemar exact p = 9.7e-11 |
+
+The absolute drops ~13 points; **the gap stays large and significant.** The reason is mechanical: under the prompt's instruction to *reply "I don't know" if the answer isn't in the context*, GPT-4o abstains far more than Flash — on 32% of *answerable* questions vs Flash's 10%. That depresses **both** conditions equally (the prompt is identical for both), so it cancels in the delta. The absolute is a property of the reader; the delta is a property of the memory.
+
+This is why we lead with the delta, not the absolute — and why cross-vendor leaderboard numbers (each measured with a different reader, judge, and split) aren't comparable to ours or to each other. Reproduce it with your own key:
+
+```bash
+export OPENAI_API_KEY=...                                # your own key
+python3 scripts/accuracy.py --model gpt-4o               # -> ~63.5 / 36.5 (the gpt-4o row)
+python3 scripts/stats.py results/accuracy_gpt4o.jsonl    # -> the +27 McNemar, no key needed
+```
+
+The per-answer data ships in [`results/accuracy_gpt4o.jsonl`](results/accuracy_gpt4o.jsonl), so the +27 is auditable from data, not asserted.
+
+**Honest scope.** This is judge-based, so unlike the token math it is not bit-deterministic: the reader and judge were both `gemini-2.5-flash` at temperature 0. The *delta* is robust to both the judge and the reader because both conditions are graded identically — verified by re-running with `gpt-4o`, where the absolute moves to 63.5% but the gap holds at +27 ([Reader sensitivity](#reader-sensitivity-the-absolute-moves-the-delta-holds)). The recency baseline is the fairest we could build — the most recent **complete** turns that fit the same token budget as Korely's block (never mid-turn; 0 empty contexts across 178). Six of the 178 are abstention questions (no answer exists in the history); on those, an answer is scored correct only when the reader correctly declines ("I don't know"), identically for both conditions. On `knowledge-update` questions (78 of 178) Korely's block also carries a short `## Known facts` section of resolved bi-temporal facts *alongside* the verbatim turns — a real capability of the memory layer, not just turn selection, while the recency window sees only raw turns; we flag it so the comparison is explicit (it's part of what a memory layer buys). Every per-answer judgement ships in [`results/accuracy.jsonl`](results/accuracy.jsonl) (Korely + recency window) and [`results/fullhist_accuracy.jsonl`](results/fullhist_accuracy.jsonl) (full history), so you can audit or re-grade all three columns.
 
 ```bash
 cd token-savings
@@ -113,6 +135,7 @@ It is measured against a deliberately naive baseline: an agent that re-sends the
 
 - [**Accuracy at equal budget** — the result that matters](#accuracy-at-equal-budget)
   - [Is the difference real, or did we get lucky? (McNemar + 95% CIs)](#is-the-difference-real-or-did-we-get-lucky)
+  - [Reader sensitivity: the absolute moves, the delta holds](#reader-sensitivity-the-absolute-moves-the-delta-holds)
 - [**Token efficiency** — the supporting number](#token-efficiency)
 - [Dashboard](#dashboard)
 - [Result (token table)](#result)

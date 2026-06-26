@@ -20,8 +20,9 @@ cancels in the DELTA — the comparison is robust to the exact judge.
   python3 accuracy.py --limit 10        # smoke
   python3 accuracy.py                    # full 178
 
-No private harness: public dataset + the committed Korely blocks. Uses Gemini
-(reads GEMINI_API_KEY / GOOGLE_API_KEY from env or .env).
+No private harness: public dataset + the committed Korely blocks. Default reader+judge
+is Gemini (reads GEMINI_API_KEY / GOOGLE_API_KEY); pass --model gpt-4o to use OpenAI
+(reads OPENAI_API_KEY) — the absolute shifts with the reader, the delta holds (see README).
 """
 from __future__ import annotations
 
@@ -43,6 +44,33 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from analyze import ntok, full_history, load_dataset, PROMPT_PRE, MIN_TURN_CHARS  # noqa: E402
 
 import google.generativeai as genai  # noqa: E402
+
+# --- Reader/judge provider: Gemini by default, OpenAI when --model is a gpt/o* model.
+# OpenAI is wrapped in a tiny adapter so reader()/judge()/_call() work unchanged. This is
+# what makes the reader-sensitivity result reproducible: run --model gpt-4o with your own
+# OPENAI_API_KEY and you get the lower absolute (the delta holds). See the README.
+_OAI_CLIENT = None
+
+
+def _is_openai(name: str) -> bool:
+    return name.startswith(("gpt", "o1", "o3", "o4", "chatgpt"))
+
+
+class _OpenAIModel:
+    """Adapter exposing .generate_content(prompt, generation_config) like genai."""
+
+    def __init__(self, name, client):
+        self.name, self.client = name, client
+
+    def generate_content(self, prompt, generation_config=None):
+        cfg = generation_config or {}
+        r = self.client.chat.completions.create(
+            model=self.name,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=cfg.get("temperature", 0.0),
+            max_tokens=cfg.get("max_output_tokens", 512),
+        )
+        return type("_R", (), {"text": r.choices[0].message.content or ""})()
 
 
 def _history_turns(item):
@@ -85,6 +113,34 @@ def _load_key() -> str:
     sys.exit("Set GEMINI_API_KEY")
 
 
+def _load_openai_key() -> str:
+    if os.environ.get("OPENAI_API_KEY"):
+        return os.environ["OPENAI_API_KEY"]
+    for env in (".env", "../.env", os.path.expanduser("~/Code/korely-graphrag/.env")):
+        if os.path.exists(env):
+            for line in open(env):
+                m = re.match(r"\s*OPENAI_API_KEY\s*=\s*(.+)", line)
+                if m:
+                    return m.group(1).strip().strip('"').strip("'")
+    sys.exit("Set OPENAI_API_KEY")
+
+
+def configure_provider(model_name: str):
+    """Configure the right SDK for the chosen reader/judge model."""
+    global _OAI_CLIENT
+    if _is_openai(model_name):
+        from openai import OpenAI
+        _OAI_CLIENT = OpenAI(api_key=_load_openai_key())
+    else:
+        genai.configure(api_key=_load_key())
+
+
+def make_model(model_name: str):
+    if _is_openai(model_name):
+        return _OpenAIModel(model_name, _OAI_CLIENT)
+    return genai.GenerativeModel(model_name)
+
+
 # gemini-2.5-flash is a thinking model: reasoning tokens count against
 # max_output_tokens, so a tiny budget returns empty text. Give room for both.
 READER_TEMP = {"temperature": 0.0, "max_output_tokens": 512}
@@ -118,7 +174,7 @@ The MODEL ANSWER is CORRECT only if it abstains — says it doesn't know, the in
 Respond with exactly one word: CORRECT or INCORRECT."""
 
 
-def _call(model, prompt, cfg, retries=5):
+def _call(model, prompt, cfg, retries=8):
     for i in range(retries):
         try:
             r = model.generate_content(prompt, generation_config=cfg)
@@ -126,7 +182,7 @@ def _call(model, prompt, cfg, retries=5):
         except Exception as e:
             if i == retries - 1:
                 return ""
-            time.sleep(2 ** i + 0.5)
+            time.sleep(min(2 ** i + 0.5, 30))
     return ""
 
 
@@ -149,7 +205,7 @@ def judge(model, q, gold, ans, qtype, is_abs):
 
 def process(item, ctx, model_name):
     """One question, both conditions. Returns a result row."""
-    rm = genai.GenerativeModel(model_name)
+    rm = make_model(model_name)
     q, gold, qtype = item["question"], item["_gold"], item["question_type"]
     is_abs = str(item["_qid"]).endswith("_abs")
     block_n = ntok(ctx)
@@ -177,7 +233,7 @@ def main():
     ap.add_argument("--workers", type=int, default=6)
     args = ap.parse_args()
 
-    genai.configure(api_key=_load_key())
+    configure_provider(args.model)
     by_qid = load_dataset(args.dataset)
 
     work = []

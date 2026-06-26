@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import sys
 
 Z = 1.959963985  # standard normal quantile for a two-sided 95% interval
 
@@ -59,7 +60,9 @@ def mcnemar_chi2(b: int, c: int) -> tuple[float, float]:
 
 def main() -> None:
     here = os.path.dirname(os.path.abspath(__file__))
-    path = os.path.join(here, "..", "results", "accuracy.jsonl")
+    path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(here, "..", "results", "accuracy.jsonl")
+    base = os.path.splitext(os.path.basename(path))[0]
+    out_name = "stats.json" if base == "accuracy" else f"stats_{base.replace('accuracy_', '')}.json"
     rows = [json.loads(line) for line in open(path) if line.strip()]
 
     a = b = c = d = 0  # both right / korely-only / window-only / both wrong
@@ -111,7 +114,7 @@ def main() -> None:
     }
 
     os.makedirs(os.path.join(here, "..", "results"), exist_ok=True)
-    with open(os.path.join(here, "..", "results", "stats.json"), "w") as fh:
+    with open(os.path.join(here, "..", "results", out_name), "w") as fh:
         json.dump(out, fh, indent=2)
 
     def fmt_p(p: float) -> str:
@@ -129,7 +132,7 @@ def main() -> None:
     print(f"  McNemar discordant pairs: b={b} (korely only), c={c} (window only)")
     print(f"  McNemar exact binomial      p = {fmt_p(p_exact)}")
     print(f"  McNemar chi2 (cont. corr.)  chi2 = {chi2:.1f},  p = {fmt_p(p_chi2)}")
-    print("\nWrote results/stats.json")
+    print(f"\nWrote results/{out_name}")
 
 
 if __name__ == "__main__":

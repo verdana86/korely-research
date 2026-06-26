@@ -12,7 +12,7 @@
 
 ### The one number
 
-On the public **LongMemEval** benchmark, at an **equal token budget**, a reader answers **76% of questions correctly from Korely's selected memory block versus 42% from a same-size recency window** — same cost, **1.8× the answers right**, and within ~7 points of re-sending the *entire* history (83.1%) at a third of the tokens.
+On the public **LongMemEval** benchmark, at an **equal token budget**, a reader answers **76% of questions correctly from Korely's selected memory block versus 42% from a same-size recency window** — same cost, **1.8× the answers right**, and within ~7 points of re-sending the *entire* history (83.1%) at a third of the tokens. The robust result is the **+34 gap**, not the absolute number: change the reader LLM and the gap holds (+27 with GPT-4o, still significant) even as the absolute shifts — we [document the reader sensitivity](token-savings/#reader-sensitivity-the-absolute-moves-the-delta-holds) rather than hide it.
 
 That selection number is produced by Korely's hosted `get_context()` — the cloud memory layer — and you reproduce it from this repo against the free API. The **open engine in this repo** (`src/`) is the retrieval core (hybrid search + the entity graph); it reproduces the [retrieval benchmark](BENCHMARK.md): on related-post queries the graph adds recall (r@5 0.72 vs 0.65, hit@5 0.94 vs 0.83) at **62× the speed** of vanilla (precision ties), and clearly beats nano-graphrag. Full method + raw per-answer data: [token-savings/](token-savings/).
 
@@ -61,7 +61,7 @@ Plug it into Claude Code, Cursor, Claude Desktop, or any MCP client and ask ques
 
 ## Benchmarks
 
-- **[Memory quality on LongMemEval](token-savings/)**: at an equal token budget, Korely's selected block answers **76% of questions correctly vs 42%** for a same-size recency window (**+34 points**), within ~7 points of full-context (83.1%) at a third of the tokens. Animated dashboard, raw per-answer data, and per-answer pass/fail judgements included.
+- **[Memory quality on LongMemEval](token-savings/)**: at an equal token budget, Korely's selected block answers **76% of questions correctly vs 42%** for a same-size recency window (**+34 points**), within ~7 points of full-context (83.1%) at a third of the tokens. The +34 delta is verified robust across readers (the absolute is reader-dependent — see reader sensitivity). Animated dashboard, raw per-answer data, and per-answer pass/fail judgements included.
 - **[Retrieval vs vanilla RAG and nano-graphrag](BENCHMARK.md)**: the entity-graph retrieval benchmark.
 
 ## Demo
